@@ -36,24 +36,25 @@ Descriptions of each file can be found below
 |   requirements.txt
 |   
 \---src
-    |   train.py
-    |   val.py
+    |   train.py -> Training script 
+    |   val.py -> Validation and testing script
     |   
     +---cfg
-    |       train_cfg.yml
+    |       train_cfg.yml -> Main config file for training 
     |       
     +---modules
-    |   |   augs.py
-    |   |   dataset.py
-    |   |   macenko_torch.py
-    |   |   metrics.py
-    |   |   utils.py
+    |   |   augs.py -> Augmentations used in the study
+    |   |   dataset.py -> Data classess. Standard dataloaders are used 
+    |   |   macenko_torch.py -> Edited version of Macenko normalization in pytorch. 
+    |   |                       We added a small function for getting optimal stain vectors
+    |   |   metrics.py -> Main metrics: dice, precision, recall 
+    |   |   utils.py -> Some helper functions
     |   |   
     |   +---models
-    |   |   |   convnext.py
-    |   |   |   convnext_smp_unet_he.py
-    |   |   |   resnet_smp_unet_he.py
+    |   |   |   convnext.py -> Implementation of ConvNeXt from their official repository
+    |   |   |   convnext_smp_unet_he.py -> Unet with ConvNeXt as backbone, stain-invariant training branch, and channel attention 
+    |   |   |   resnet_smp_unet_he.py -> Unet with ResNet as backbone, stain-invariant training branch, and channel attention
     |   |           
-    |   +---stainspec
+    |   +---stainspec -> This folder contains official implementation of one of the compared methods
 ```         
 
