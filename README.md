@@ -10,6 +10,18 @@
 
 Thank you for expressing interest in our work.
 
+#### To do:
+- Add other configs
+- Add other datasets in testing script
+- Add training logs
+- Add dataset links
+- Add config explanation
+- Check environment setup on other OS 
+- Add instruction on how to adapt the method for your own model
+- Check macenko_torch.py with newer pytorch versions
+- Check whether wandb login info gets stored or not
+- Automate model selection
+- List potential small erros due to hyperparameter changes
 
 ## Setup
   
