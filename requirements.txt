@@ -5,5 +5,5 @@ albumentations==1.2.1
 torchstain==1.2.0
 segmentation-models-pytorch==0.3.0
 kmeans1d==0.3.1
-wandb
+wandb==0.13.10
     
