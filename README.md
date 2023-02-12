@@ -1,13 +1,13 @@
-# Improving Stain Invariance of CNNs for Segmentation by Fusing Channel Attention and Domain-Adversarial Training
+## Improving Stain Invariance of CNNs for Segmentation by Fusing Channel Attention and Domain-Adversarial Training
 
 Thank you for expressing expressing interest in our work.
 
 
-# Setup
+## Setup
   
 1. Create an environment:
 ```
-conda create -n ftu_seg python=3.7
+conda create -n <env_name> python=3.7
 ```
 2. This version of pytorch requires separate installation (creating env from env.yml file or requirements.txt does not find it)
 ```
@@ -18,7 +18,8 @@ pip install torch==1.11.0+cu113 torchvision==0.12.0+cu113 torchaudio==0.11.0 --e
 pip install -r requirements.txt
 ```
 
-# Structure of the repository and the descriptions of each file can be found below
+## Structure of the repository
+Descriptions of each file can be found below
 
 ```
 |   .gitignore
