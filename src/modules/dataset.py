@@ -1,33 +1,19 @@
 
 import numpy as np
 import pandas as pd
-
+import cv2
 from sklearn.model_selection import StratifiedKFold
 
-import cv2
-
+import yaml
 import os
-# from pathlib import Path
-# import glob
-# from tqdm.notebook import tqdm, tnrange
-# import gc
 
 import torch
-# import torch.nn as nn
-# import torch.optim as optim
-# import torch.nn.functional as F
 import torchvision.transforms as torchtf
 from torch.utils.data import Dataset
-# from torch.utils.data import DataLoader
-# from torch.utils.data import random_split
 
 from albumentations import *
-# from albumentations.pytorch import ToTensorV2
-
-# from sklearn.preprocessing import StandardScaler
 from modules.macenko_torch import TorchMacenkoNormalizer
 
-import yaml
 
 dirname = os.path.dirname(__file__)
 cfg_name = 'train_cfg.yml'
