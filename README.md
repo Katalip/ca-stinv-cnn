@@ -1,5 +1,6 @@
-## Improving Stain Invariance of CNNs for Segmentation by Fusing Channel Attention and Domain-Adversarial Training
+## Improving Stain Invariance of CNNs (Implementation)
 
+> Full title: Improving Stain Invariance of CNNs for Segmentation by Fusing Channel Attention and Domain-Adversarial Training <br>
 > Paper: To do (under review) <br> 
 > Slide: To do <br>
 
