@@ -101,7 +101,7 @@ class hpa_hubmap_data_he(Dataset):
         try:
             stain_matrix, _, _ = self.normalizer.get_stain_matrix(self.T(img))
         except:
-            print("Lapack error -> returning default he matrix")
+            print("Lapack error -> returning default stain matrix")
             stain_matrix = torch.tensor([0.58096592, 0.27774671, 0.66405821, 0.53398947, 0.47064348,
        0.79856872]).float()
 

@@ -3,6 +3,22 @@ Thank you for expressing expressing interest in our work.
 
 Structure of the repository and the descriptions of each file can be found below
   
+To create an environment:
+
+conda create -n ftu_seg python=3.7
+pip install torch==1.11.0+cu113 torchvision==0.12.0+cu113 torchaudio==0.11.0 --extra-index-url https://download.pytorch.org/whl/cu113
+pip install:
+    pandas==1.3.5
+    seaborn==0.11.2
+    opencv-python==4.6.0.66
+    albumentations==1.2.1
+    wandb
+    torchstain==1.2.0
+    segmentation-models-pytorch==0.3.0
+    kmeans1d==0.3.1
+
+
+
 ```
 |   .gitignore
 |   environment.yml
@@ -10,9 +26,7 @@ Structure of the repository and the descriptions of each file can be found below
 |   requirements.txt
 |   
 \---src
-    |   train.ipynb
     |   train.py
-    |   val.ipynb
     |   val.py
     |   
     +---cfg
@@ -31,11 +45,5 @@ Structure of the repository and the descriptions of each file can be found below
     |   |   |   resnet_smp_unet_he.py
     |   |           
     |   +---stainspec
-    |   |   |   
-    |   |   +---randstainNA
-    |   |           
-    |           
-    +---preprocessing
-    |       resize.ipynb
 ```         
 
