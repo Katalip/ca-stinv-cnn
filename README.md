@@ -67,14 +67,18 @@ The [download link](https://github.com/ccipd/DL-kidneyhistologicprimitives) is a
  
 **Academia and Industry Collaboration for Digital Pathology (AIDPATH)** is a Europen project. The data is collected in Spain and hosted by Mendeley. [Description.](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7058889/#fn2) [Download](https://data.mendeley.com/datasets/k7nvtgn2x6/3)
 
-WSIs in HuBMAP21 Kidney should come from the data contributors that can be viewed by the link provided above. [The dataset description.](https://www.biorxiv.org/content/10.1101/2021.11.09.467810v1) [Download](https://github.com/cns-iu/ccf-research-kaggle-2021)(Data section)
+WSIs in HuBMAP21 Kidney should come from the data contributors that can be viewed by the link provided above. [Description.](https://www.biorxiv.org/content/10.1101/2021.11.09.467810v1) [Download](https://github.com/cns-iu/ccf-research-kaggle-2021) (Data section)
 
+We do not perform any specific preprocessing. Training images are resized to 768x768, while test samples are resized to sizes that match stats (pixel size, magnification) of the train data.
+NEPTUNE images to 480x480
+AIDPATH samples to 256x256
+HuBMAP21 Kidney WSIs to 224x224
 
 #### To do:
 - [ ] Add other configs
 - [ ] Add other datasets in testing script
 - [ ] Add training logs
-- [ ] Add dataset links
+- [x] Add dataset links
 - [ ] Add config explanation
 - [ ] Check environment setup on other OS 
 - [ ] Add instruction on how to adapt the method for your own model
