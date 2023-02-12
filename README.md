@@ -1,23 +1,24 @@
-# ca-stinv
+# Improving Stain Invariance of CNNs for Segmentation by Fusing Channel Attention and Domain-Adversarial Training
+
 Thank you for expressing expressing interest in our work.
 
-Structure of the repository and the descriptions of each file can be found below
+
+# Setup
   
-To create an environment:
-
+1. Create an environment:
+```
 conda create -n ftu_seg python=3.7
+```
+2. This version of pytorch requires separate installation (creating env from env.yml file or requirements.txt does not find it)
+```
 pip install torch==1.11.0+cu113 torchvision==0.12.0+cu113 torchaudio==0.11.0 --extra-index-url https://download.pytorch.org/whl/cu113
-pip install:
-    pandas==1.3.5
-    seaborn==0.11.2
-    opencv-python==4.6.0.66
-    albumentations==1.2.1
-    wandb
-    torchstain==1.2.0
-    segmentation-models-pytorch==0.3.0
-    kmeans1d==0.3.1
+```
+3. Install other necessary dependencies
+```
+pip install -r requirements.txt
+```
 
-
+# Structure of the repository and the descriptions of each file can be found below
 
 ```
 |   .gitignore
