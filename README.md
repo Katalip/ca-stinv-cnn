@@ -105,4 +105,5 @@ START_EPOCH: Starting epoch in case previous training was interrupted
 - [ ] Check whether wandb login info gets stored or not
 - [ ] Automate model selection
 - [ ] List potential small erros due to hyperparameter changes
+- [ ] Add test time stain normalization in val.py
 
