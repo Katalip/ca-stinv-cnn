@@ -12,3 +12,4 @@ src/exp_stain_info.ipynb
 wandb/
 src/train.ipynb
 src/val.ipynb
+src/preprocessing
