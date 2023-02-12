@@ -1,0 +1,15 @@
+BS: 2
+NFOLDS: 4
+FOLD: 2
+SEED: 309
+TRAIN: '../data/HUBMAP_HPA_22/hubmap_768_whole_2/train_images/'
+MASKS: '../data/HUBMAP_HPA_22/hubmap_768_whole_2/train_masks/'
+LABELS: '../data/HUBMAP_HPA_22/hubmap_orig/train.csv'
+EXPERIMENT_NAME: 'test'
+NUM_WORKERS: 4
+EPOCHS: 4
+DEVICE: 'cuda'
+PRETRAINED_WEIGHTS_CONVNEXT: '../pretrained_models/convnext_tiny_1k_224_ema.pth' 
+VAL_EPOCH: 3
+CHECKPOINT_EPOCH: 50
+START_EPOCH: 0 

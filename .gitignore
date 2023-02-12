@@ -1,0 +1,12 @@
+data/
+experiments/
+src/wandb
+pretrained_models/
+experiments_comp/
+experiments_till_168/
+experiments_168-234/
+analysis/
+notes.txt
+src/exp.ipynb
+src/exp_stain_info.ipynb
+wandb/
