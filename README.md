@@ -106,4 +106,5 @@ START_EPOCH: Starting epoch in case previous training was interrupted
 - [ ] Automate model selection
 - [ ] List potential small erros due to hyperparameter changes
 - [ ] Add test time stain normalization in val.py
+- [ ] Add ISW license
 
