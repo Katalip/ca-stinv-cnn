@@ -13,3 +13,4 @@ wandb/
 src/train.ipynb
 src/val.ipynb
 src/preprocessing
+*.pyc
