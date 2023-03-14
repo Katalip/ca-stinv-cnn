@@ -25,8 +25,8 @@ Thank you for expressing interest in our work.
 - [ ] Add instruction on how to adapt the method for your own model
 - [ ] Check macenko_torch.py with newer pytorch versions
 - [ ] Check whether wandb login info gets stored or not
-- [ ] Automate model selection
+- [x] Automate model selection
 - [ ] List potential small erros due to hyperparameter changes
 - [ ] Add test time stain normalization in val.py
-- [ ] Add ISW license
+- [x] Add ISW license
 
