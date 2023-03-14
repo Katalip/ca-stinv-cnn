@@ -2,8 +2,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 import warnings
 warnings.filterwarnings('ignore')
-from itertools import cycle
-color_cycle = cycle(plt.rcParams['axes.prop_cycle'].by_key()['color'])
 
 import torch
 import torch.nn as nn
@@ -21,36 +19,38 @@ import time
 import os
 import gc
 import yaml
+from argparse import ArgumentParser
 
 from albumentations import *
 
+argparser = ArgumentParser()
+argparser.add_argument('config_name', help='Name of the yml config file')
+args = argparser.parse_args()
+
 # Config File
 dirname = os.path.dirname(__file__)
-
-cfg_name = 'train_cfg.yml'
+cfg_name = args.config_name
 with open(os.path.join(dirname, f'cfg/{cfg_name}')) as f:
-        # use safe_load instead load
         cfg = yaml.safe_load(f)
 
-bs = cfg['BS']
-nfolds = cfg['NFOLDS']
-fold = cfg['FOLD']
-SEED = cfg['SEED']
-TRAIN = cfg['TRAIN']
-MASKS = cfg['MASKS']
-LABELS = cfg['LABELS']
-EXPERIMENT_NAME = cfg['EXPERIMENT_NAME']
-NUM_WORKERS = cfg['NUM_WORKERS']
-EPOCHS = cfg['EPOCHS']
-DEVICE = cfg['DEVICE']
-save_root = os.path.join(dirname, f'../experiments/{EXPERIMENT_NAME}')
+EXPERIMENT_NAME = cfg['Global'].get('experiment_name') 
+DEVICE = cfg['Global'].get('device')
+EPOCHS = cfg['Global'].get('epochs')
+VAL_EPOCH = cfg['Global'].get('val_epoch')
+CHECKPOINT_EPOCH = cfg['Global'].get('checkpoint_epoch')
+START_EPOCH = cfg['Global'].get('start_epoch')
 
-# Checkpoints
-val_epoch = cfg['VAL_EPOCH']
-checkpoint_epoch = cfg['CHECKPOINT_EPOCH']
-start_epoch = cfg['START_EPOCH'] 
-pretrained_path = os.path.join(dirname, cfg['PRETRAINED_WEIGHTS_CONVNEXT']) 
+BATCH_SIZE = cfg['Loader'].get('batch_size')
+NUM_WORKERS = cfg['Loader'].get('num_workers')
 
+ENCODER_NAME = cfg['Architecture'].get('encoder')
+assert ENCODER_NAME in ('resnet50', 'convnext_tiny')
+
+PRETRAINED_WEIGHTS = cfg['Architecture'].get('weights')
+WANDB_PROJECT = cfg['Logging'].get('wandb_project') 
+
+
+SAVE_PATH = os.path.join(dirname, f'../experiments/{EXPERIMENT_NAME}')
 
 try:
         os.makedirs(os.path.join(dirname, f'../experiments/'), exist_ok=True)
@@ -58,7 +58,7 @@ except:
         raise Exception('Folder creation error')
 
 try:
-        os.makedirs(save_root, exist_ok=True)
+        os.makedirs(SAVE_PATH, exist_ok=True)
 except:
         raise Exception('Folder creation error')
 
@@ -68,16 +68,16 @@ def train(model, train_loader, val_loader, optimizer, scaler):
     iterations_per_epoch = len(train_loader)
 
     # os.environ["WANDB_SILENT"] = "true"
-    wandb.init(project='segmap', resume=True)
+    wandb.init(project=WANDB_PROJECT, resume=True)
 
     metric = mean_Dice()
 
-    log = open(f'{save_root}/train_logs.txt', 'a')
+    log = open(f'{SAVE_PATH}/train_logs.txt', 'a')
     log.write(EXPERIMENT_NAME + '\n')
     
-    global checkpoint_epoch
+    global CHECKPOINT_EPOCH
     
-    for epoch in range(start_epoch, EPOCHS):
+    for epoch in range(START_EPOCH, EPOCHS):
 
         start_time = time.time()
         
@@ -131,20 +131,15 @@ def train(model, train_loader, val_loader, optimizer, scaler):
         temp = f"Epoch: {epoch + 1} | Total_loss: {total_loss:.3f} | Train_loss: {train_loss:.3f} | Stain_loss: {stain_loss:.3f} | Train Dice: {score:.3f} | Epoch Time: {elapsed} | " 
         print(temp, end='')
         log.write(temp)
-
-        # print(f"Fold: {fold} | Epoch: {epoch + 1} | Total_loss: {total_loss:.3f} | Train_loss: {train_loss:.3f} | ISW_loss: {stain_loss:.3f} | Train Dice: {score:.3f} | ", end='')
-        # print(f"Fold: {fold} | Epoch: {epoch + 1} | Train_loss: {train_loss:.3f} | Train Dice: {score:.3f} | ", end='')
         
-        if epoch % val_epoch == 0 or (epoch % checkpoint_epoch == 0 and epoch > 0):
-            # Validation
-            save_preds_flag = (epoch % checkpoint_epoch == 0)
+        if epoch % VAL_EPOCH == 0 or (epoch % CHECKPOINT_EPOCH == 0 and epoch > 0):
+            save_preds_flag = (epoch % CHECKPOINT_EPOCH == 0)
             val_loss, val_score = evaluate_model(model, val_loader, metric, save_preds = save_preds_flag) 
             
             temp = f"Val_loss: {val_loss:.3f} | Val Dice: {val_score:.3f}" 
             print(temp, end='')
             log.write(temp) 
 
-            # Log to wandb
             wandb.log({'train_loss':train_loss, 
                     'train_dice': score, 'val_loss': val_loss, 'total_loss':total_loss,
                     'stain_loss': stain_loss, 
@@ -157,12 +152,11 @@ def train(model, train_loader, val_loader, optimizer, scaler):
         print('')
         log.write('\n')
 
-        # Save model state 
-        if (epoch % checkpoint_epoch == 0 or epoch == EPOCHS - 1 or epoch > EPOCHS - 20) and (epoch > 0): 
-            save_model(model, f"{save_root}/epoch_{epoch}.pth")
+        if (epoch % CHECKPOINT_EPOCH == 0 or epoch == EPOCHS - 1 or epoch > EPOCHS - 20) and (epoch > 0): 
+            save_model(model, f"{SAVE_PATH}/epoch_{epoch}.pth")
         
-        if checkpoint_epoch == 50 and epoch > EPOCHS - checkpoint_epoch:
-            checkpoint_epoch = 20
+        if CHECKPOINT_EPOCH == 50 and epoch > EPOCHS - CHECKPOINT_EPOCH:
+            CHECKPOINT_EPOCH = 20
 
     wandb.finish()
 
@@ -184,7 +178,7 @@ def evaluate_model(model, val_loader, metric, save_preds=False):
             outputs = model({'image':img, 'mask':mask})
             
             if save_preds:
-                save_predictions_as_imgs(outputs['raw'], mask, folder=f"{save_root}", idx=i)
+                save_predictions_as_imgs(outputs['raw'], mask, folder=f"{SAVE_PATH}", idx=i)
 
             valid_loss += outputs['bce_loss'].mean() 
             val_score += metric(outputs['raw'], mask).item()
@@ -201,30 +195,28 @@ if __name__ == '__main__':
     gc.collect()
 
     # Data
-    train_data = hpa_hubmap_data_he(fold=fold, train=True, tfms=get_aug_a1(), selection_tfms = get_aug_selection())
-    val_data = hpa_hubmap_data(fold=fold, train=False)
-    train_loader = DataLoader(train_data, shuffle = True, batch_size = bs)
-    val_loader = DataLoader(val_data, shuffle = True, batch_size = bs)
+    train_data = hpa_hubmap_data_he(cfg=cfg['Data'], train=True, tfms=get_aug_a1(), selection_tfms=get_aug_selection())
+    val_data = hpa_hubmap_data_he(cfg=cfg['Data'], train=False)
+    train_loader = DataLoader(train_data, shuffle=True, batch_size=BATCH_SIZE, num_workers=NUM_WORKERS)
+    val_loader = DataLoader(val_data, shuffle=True, batch_size=BATCH_SIZE, num_workers=NUM_WORKERS)
 
     # Loss
     best_loss, best_score = float('inf'), 0
     bce_loss = nn.BCEWithLogitsLoss() 
     mse_loss = nn.MSELoss()
-
     def rmse_loss(out, target):
         return torch.sqrt(mse_loss(out, target))
 
     # Model
-    model = ResUNet(stinv_training=True, stinv_enc_dim=1, pool_out_size=6, filter_sensitive=True, n_domains=6, domain_pool='max').cuda()
-    # model = ConvNextUNet(stinv_training=True, stinv_enc_dim=1, pool_out_size=6, filter_sensitive=True, n_domains=6, domain_pool='max', encoder_pretrain=pretrained_path).cuda()
+    if ENCODER_NAME == 'resnet50':
+        model = ResUNet(stinv_training=True, stinv_enc_dim=1, pool_out_size=6, filter_sensitive=True, n_domains=6, domain_pool='max').cuda()
+    elif ENCODER_NAME == 'convnext_tiny':
+        model = ConvNextUNet(stinv_training=True, stinv_enc_dim=1, pool_out_size=6, filter_sensitive=True, n_domains=6, domain_pool='max', encoder_pretrain=PRETRAINED_WEIGHTS).cuda()
+        model.load_pretrain()
 
-    if start_epoch > 0:
-        model.load_state_dict(torch.load(f"{save_root}/fold_{fold}_epoch_{start_epoch}.pth"))
-        print(f'Starting from epoch: {start_epoch}')
-    else:
-        # For ConvNext
-        # model.load_pretrain()
-        pass
+    if START_EPOCH > 0:
+        model.load_state_dict(torch.load(f"{SAVE_PATH}/epoch_{START_EPOCH}.pth"))
+        print(f'Starting from epoch: {START_EPOCH}')
 
     optimizer = torch.optim.AdamW(model.parameters(), lr=5e-5, weight_decay=1e-3)
     scaler = torch.cuda.amp.GradScaler()

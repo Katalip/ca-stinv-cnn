@@ -16,28 +16,11 @@ from modules.macenko_torch import TorchMacenkoNormalizer
 
 
 dirname = os.path.dirname(__file__)
-cfg_name = 'train_cfg.yml'
-file_name = os.path.join(dirname, f'../cfg/{cfg_name}')
-
-with open(file_name) as f:
-        # use safe_load instead load
-        cfg = yaml.safe_load(f)
-
-bs = cfg['BS']
-nfolds = cfg['NFOLDS']
-fold = cfg['FOLD']
-SEED = cfg['SEED']
-TRAIN = os.path.join(dirname, '../' + cfg['TRAIN'])
-MASKS = os.path.join(dirname, '../' + cfg['MASKS'])
-LABELS = os.path.join(dirname, '../' + cfg['LABELS'])
-EXPERIMENT_NAME = cfg['EXPERIMENT_NAME']
-NUM_WORKERS = cfg['NUM_WORKERS']
 
 def img2tensor(img,dtype:np.dtype=np.float32):
     if img.ndim==2 : img = np.expand_dims(img,2)
     img = np.transpose(img,(2,0,1))
     return torch.from_numpy(img.astype(dtype, copy=False))
-
 
 # HPA_Hubmap_22
 organ_meta = dict(
@@ -72,16 +55,20 @@ organ_to_label = {k: organ_meta[k]['label'] for k in organ_meta.keys()}
 label_to_organ = {v:k for k,v in organ_to_label.items()}
 
 class hpa_hubmap_data_he(Dataset):
-    def __init__(self, fold=None, train=True, tfms=None, selection_tfms=None):
-        df = pd.read_csv(LABELS)
+    def __init__(self, cfg, train=True, tfms=None, selection_tfms=None):
 
+        self.TRAIN_IMGS = os.path.join(dirname, '../' + cfg['train_imgs'])
+        self.MASKS = os.path.join(dirname, '../' + cfg['masks'])
+        LABELS = os.path.join(dirname, '../' + cfg['labels'])
+
+        df = pd.read_csv(LABELS)
         ids = df.id.astype(str).values
         organs = df.organ.astype(str).values
 
-        kf = StratifiedKFold(n_splits=nfolds, random_state=SEED, shuffle=True)
-        ids = set(ids[list(kf.split(ids, organs))[fold][0 if train else 1]])
+        kf = StratifiedKFold(n_splits=cfg['nfolds'], random_state=cfg['seed'], shuffle=True)
+        ids = set(ids[list(kf.split(ids, organs))[cfg['fold']][0 if train else 1]])
             
-        self.fnames = [fname for fname in os.listdir(TRAIN) if fname.split('.')[0] in ids]
+        self.fnames = [fname for fname in os.listdir(self.TRAIN_IMGS) if fname.split('.')[0] in ids]
         self.train = train
         self.tfms = tfms
         self.selection_tfms = selection_tfms
@@ -112,8 +99,8 @@ class hpa_hubmap_data_he(Dataset):
     def __getitem__(self, idx):
 
         fname = self.fnames[idx]
-        img = cv2.cvtColor(cv2.imread(os.path.join(TRAIN,fname)), cv2.COLOR_BGR2RGB)
-        mask = cv2.imread(os.path.join(MASKS, fname), cv2.IMREAD_GRAYSCALE)
+        img = cv2.cvtColor(cv2.imread(os.path.join(self.TRAIN_IMGS,fname)), cv2.COLOR_BGR2RGB)
+        mask = cv2.imread(os.path.join(self.MASKS, fname), cv2.IMREAD_GRAYSCALE)
 
         if self.tfms is not None:
             augmented = self.tfms(image=img,mask=mask)
@@ -123,10 +110,12 @@ class hpa_hubmap_data_he(Dataset):
             augmented = self.selection_tfms(image=img,mask=mask)
             img_tf = augmented['image']
         
-        stain_matrix = self.get_stain_info(img)
         mask = img2tensor(mask)
-                
-        res = [img2tensor(img/255.0), mask, stain_matrix]
+        res = [img2tensor(img/255.0), mask]
+
+        if self.train:
+            stain_matrix = self.get_stain_info(img)                
+            res.append(stain_matrix)
 
         if self.selection_tfms:
             res.append(img2tensor(img_tf/255.0))
@@ -271,31 +260,4 @@ class hubmap21_kidney_data(Dataset):
             img,mask = augmented['image'],augmented['mask']
 
         return img2tensor(img/255.0), img2tensor(mask)
-
-
-
-class hpa_hubmap_data(Dataset):
-    def __init__(self, fold=None, train=True, tfms=None):
-        df = pd.read_csv(LABELS)
-        ids = df.id.astype(str).values
-        organs = df.organ.astype(str).values
-        kf = StratifiedKFold(n_splits=nfolds, random_state=SEED, shuffle=True)  
-        ids = set(ids[list(kf.split(ids, organs))[fold][0 if train else 1]])
-        self.fnames = [fname for fname in os.listdir(TRAIN) if fname.split('.')[0] in ids]
-        self.train = train
-        self.tfms = tfms
-        self.df = df
-
-    def __len__(self):
-        return len(self.fnames)
-    
-    def __getitem__(self, idx):
-        fname = self.fnames[idx]
-        img = cv2.cvtColor(cv2.imread(os.path.join(TRAIN,fname)), cv2.COLOR_BGR2RGB)
-        mask = cv2.imread(os.path.join(MASKS, fname),cv2.IMREAD_GRAYSCALE)
-        if self.tfms is not None:
-            augmented = self.tfms(image=img,mask=mask)
-            img,mask = augmented['image'],augmented['mask']
-        
-        return img2tensor(img/255.0), img2tensor(mask) 
 
