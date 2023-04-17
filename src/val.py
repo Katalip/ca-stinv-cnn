@@ -1,46 +1,52 @@
-import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
 import warnings
 warnings.filterwarnings('ignore')
-from itertools import cycle
-color_cycle = cycle(plt.rcParams['axes.prop_cycle'].by_key()['color'])
 
 import torch
-import torch.nn as nn
 from torch.utils.data import DataLoader
-
-from modules.dataset import *
-from modules.metrics import *
-from modules.utils import *
-
 from albumentations import *
+
+from modules.dataset import hpa_hubmap_data_he, neptune_data, aidpath_data, hubmap21_kidney_data
+from modules.metrics import DicePrecisionRecall
+from modules.utils import save_predictions_as_imgs
+from modules.models.resnet_smp_unet_he import ResUNet
+from modules.models.convnext_smp_unet_he import ConvNextUNet
 
 import yaml
 import os
+from argparse import ArgumentParser
 
+argparser = ArgumentParser()
+argparser.add_argument('config_name', help='Name of the yml config file')
+args = argparser.parse_args()
+
+# Config File
 dirname = os.path.dirname(__file__)
-
-cfg_name = 'train_cfg.yml'
+cfg_name = args.config_name
 with open(os.path.join(dirname, f'cfg/{cfg_name}')) as f:
-        # use safe_load instead load
         cfg = yaml.safe_load(f)
 
+EXPERIMENT_NAME = cfg['Train'].get('experiment_name') 
+DEVICE = cfg['Train'].get('device')
 
-bs = cfg['BS']
-nfolds = cfg['NFOLDS']
-fold = cfg['FOLD']
-SEED = cfg['SEED']
-TRAIN = os.path.join(dirname, cfg['TRAIN'])
-MASKS = os.path.join(dirname, cfg['MASKS'])
-LABELS = os.path.join(dirname, cfg['LABELS'])
-EXPERIMENT_NAME = cfg['EXPERIMENT_NAME']
-NUM_WORKERS = cfg['NUM_WORKERS']
-EPOCHS = cfg['EPOCHS']
-DEVICE = cfg['DEVICE']
-save_root = os.path.join(dirname, f'../experiments/{EXPERIMENT_NAME}')
+BATCH_SIZE = cfg['Loader'].get('batch_size')
+NUM_WORKERS = cfg['Loader'].get('num_workers')
 
-datasets_for_val = ['hpa_hubmap_2022']
+ENCODER_NAME = cfg['Architecture'].get('encoder')
+assert ENCODER_NAME in ('resnet50', 'convnext_tiny')
+CHECKPOINT_EPOCH = cfg['Eval'].get('checkpoint_epoch')
+ 
+SAVE_PATH = os.path.join(dirname, f'../experiments/{EXPERIMENT_NAME}')
+
+try:
+        os.makedirs(os.path.join(dirname, f'../experiments/'), exist_ok=True)
+except:
+        raise Exception('Folder creation error')
+
+try:
+        os.makedirs(SAVE_PATH, exist_ok=True)
+except:
+        raise Exception('Folder creation error')
 
 def evaluate_model(model, val_loader, metric, save_preds=False):
     model.eval()
@@ -60,7 +66,7 @@ def evaluate_model(model, val_loader, metric, save_preds=False):
             outputs = model({'image':img, 'mask':mask})
             
             if save_preds:
-                save_predictions_as_imgs(outputs['raw'], mask, folder=f"{save_root}", idx=i)
+                save_predictions_as_imgs(outputs['raw'], mask, folder=f"{SAVE_PATH}", idx=i)
             
             val_dice, val_precision, val_recall = metric(outputs['raw'], mask)
             valid_loss += outputs['bce_loss'].mean()
@@ -78,61 +84,121 @@ def evaluate_model(model, val_loader, metric, save_preds=False):
         return valid_loss, mean_dice, precision, recall
 
 
-from modules.models.resnet_smp_unet_he import *
-from modules.models.convnext_smp_unet_he import *
+def eval_hpa_hubmap22(cfg, model, metric, batch_size=4):
 
-if __name__ == '__main__':
+    print(f'Dataset: HPA_HuBMAP_2022. Model: {state_dict}')
+    
+    log = open(f"{SAVE_PATH}/val_res.txt", 'a')
+    log.write("Dataset: HPA_HuBMAP_2022" + '\n')
+    log.write(f"Fold: {cfg['fold']}" + '\n')
+    log.write(f'Model: {state_dict}' + '\n')
 
-    # Loss, Metric
-    loss_func = nn.BCEWithLogitsLoss()
-    metric = main_metrics()
+    val_data = hpa_hubmap_data_he(cfg=cfg, train=False)
+    val_loader = DataLoader(val_data, shuffle = True, batch_size = batch_size)   
+    loss, dice, precision, recall = evaluate_model(model, val_loader, metric)
+    res = f'Organ: all | Loss: {loss.item():.3f} | Dice: {dice:.3f} | Precision: {precision:.3f} | Recall: {recall:.3f}'
+    log.write(res + '\n')
+    print(res)
 
-    # Model
-    model = ResUNet(stinv_training=True, stinv_enc_dim=1, pool_out_size=6, filter_sensitive=True, n_domains=6, domain_pool='max').cuda()
+    log.write('\n')
+    log.close()  
+    
 
-    checkpoint = 1 # 0 
-    state_dict = f"{save_root}/epoch_{checkpoint}.pth"  
-    model.load_state_dict(torch.load(state_dict))
+def eval_neptune(cfg, model, metric, batch_size=4, img_size = 480):
 
+    print(f'Dataset: NEPTUNE. Model: {state_dict}')
+    
+    log = open(f"{SAVE_PATH}/val_res.txt", 'a')
+    log.write(f"Dataset: NEPTUNE. Model: {state_dict}" + '\n')
 
-    if 'hpa_hubmap_2022' in datasets_for_val:
+    notes = f'Img size: {img_size}'
+    log.write(notes + '\n')
+    
+    for path in [cfg['he'], cfg['pas'], cfg['tri'], cfg['sil']]:
+        neptune_path = os.path.join(cfg['root'], path)
 
-        df = pd.read_csv(LABELS)
-        kf = StratifiedKFold(n_splits=nfolds, random_state=SEED, shuffle=True) 
-        train, val = list(kf.split(df, df['organ']))[fold]
+        log.write(path + '\n')
 
-        sub_df = df.iloc[val]
-
-        organs = ['kidney', 'prostate', 'largeintestine', 'spleen', 'lung']
-        # organs = ['lung']
-        print(f'Model: {state_dict}')
-        
-        log = open(f'{save_root}/val_res.txt', 'a')
-        log.write('Dataset: hpa_hubmap_2022' + '\n')
-        log.write(f'Fold: {fold}' + '\n')
-        log.write(f'Model: {state_dict}' + '\n')
-
-        notes = ''
-        log.write(notes + '\n')
-
-        val_data = hpa_hubmap_data(fold=fold, train=False)
-        val_loader = DataLoader(val_data, shuffle = True, batch_size = bs)   
+        val_data = neptune_data(neptune_path, full_val=True, img_size=img_size)
+        val_loader = DataLoader(val_data, shuffle = True, batch_size = batch_size)   
         loss, dice, precision, recall = evaluate_model(model, val_loader, metric)
-        res = f'Organ: all | Loss: {loss.item():.3f} | Dice: {dice:.3f} | Precision: {precision:.3f} | Recall: {recall:.3f})'
+
+        res = f'Loss: {loss.item()} | Dice: {dice:.3f} | Precision: {precision:.3f} | Recall: {recall:.3f}'
         log.write(res + '\n')
-        print(notes)
         print(res)
 
-        for organ in organs: 
-            mask = (sub_df['organ'] == organ)
-            val_ids = sub_df[mask].id.astype(str).values
-            val_data = hpa_hubmap_data_val(fold=fold, ids=val_ids, train=False)
-            val_loader = DataLoader(val_data, shuffle = True, batch_size = bs)   
-            loss, dice, precision, recall = evaluate_model(model, val_loader, metric)
-            res = f'Organ: {organ} | Loss: {loss.item():.3f} | Dice: {dice:.3f} | Precision: {precision:.3f} | Recall: {recall:.3f})'
-            log.write(res + '\n')
-            print(res)
+    log.write('\n')    
+    log.close()
 
-        log.write('\n')
-        log.close()
+def eval_aidpath(cfg, model, metric, img_size = 256, batch_size=4):
+
+    print(f'Dataset: AIDPATH. Model: {state_dict}')
+    log = open(f'{SAVE_PATH}/val_res.txt', 'a')
+    log.write(f'Dataset: AIDPATH. Model: {state_dict}' + '\n')
+
+    notes = f'Img size: {img_size}'
+    log.write(notes + '\n')
+
+    val_data = aidpath_data(cfg, full_val=True, img_size=img_size)
+    val_loader = DataLoader(val_data, shuffle = True, batch_size = batch_size)   
+    loss, dice, precision, recall = evaluate_model(model, val_loader, metric)
+    res = f'Loss: {loss.item()} | Dice: {dice:.3f} | Precision: {precision:.3f} | Recall: {recall:.3f})'
+    log.write(res + '\n')
+    print(res)
+
+    log.write('\n')
+    log.close()
+
+
+def eval_hubmap_kidney(cfg, model, metric, img_size=224, batch_size=4):
+
+    print(f'Dataset: HuBMAP21 Kidney. Model: {state_dict}')
+    log = open(f'{SAVE_PATH}/val_res.txt', 'a')
+    log.write(f'Dataset: HuBMAP21 Kidney. Model: {state_dict}' + '\n')
+
+    notes = f'Img size: {img_size}'
+    log.write(notes + '\n')
+
+    val_data = hubmap21_kidney_data(cfg, full_val=True, img_size=img_size)
+    val_loader = DataLoader(val_data, shuffle = True, batch_size = batch_size)   
+    loss, dice, precision, recall = evaluate_model(model, val_loader, metric)
+    res = f'Loss: {loss.item()} | Dice: {dice:.3f} | Precision: {precision:.3f} | Recall: {recall:.3f})'
+    log.write(res + '\n')
+    print(res)
+
+    log.write('\n')
+    log.close()
+
+
+
+    
+if __name__ == '__main__':
+
+    if ENCODER_NAME == 'resnet50':
+        model = ResUNet(stinv_training=True, stinv_enc_dim=1, pool_out_size=6, filter_sensitive=True, n_domains=6, domain_pool='max').cuda()
+    elif ENCODER_NAME == 'convnext_tiny':
+        model = ConvNextUNet(stinv_training=True, stinv_enc_dim=0, pool_out_size=6, filter_sensitive=True, n_domains=6, domain_pool='max', encoder_pretrain=None).cuda()
+    
+    state_dict = f"{SAVE_PATH}/epoch_{CHECKPOINT_EPOCH}.pth"  
+    model.load_state_dict(torch.load(state_dict), strict=False)
+
+    metric = DicePrecisionRecall()
+
+    eval_hpa_hubmap22(cfg['Data'], model, metric)
+    eval_neptune(cfg['Eval']['neptune'], model, metric)
+    eval_aidpath(cfg['Eval']['aidpath'], model, metric)
+    eval_hubmap_kidney(cfg['Eval']['hubmap21_kidney'], model, metric)
+
+    log = open(f'{SAVE_PATH}/val_res.txt', 'a')
+    log.write('-'*20 + '\n')
+
+    
+    
+
+
+
+    
+    
+
+        
     
