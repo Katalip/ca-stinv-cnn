@@ -22,3 +22,15 @@ Logging:
   wandb_project: 'segmap'
 Eval:
   checkpoint_epoch: 39
+  neptune:
+    root: '../../thesis/data/NEPTUNE/'
+    he: 'HE_glom_capsule'
+    pas: 'pas-gcapsule-data'
+    sil: 'sil-gcapsule-data'
+    tri: 'tri-gcapsule-data'
+  aidpath:
+    imgs: '../../thesis/data/Adipath_processed/images_1024/'
+    masks: '../../thesis/data/Adipath_processed/masks_1024/'
+  hubmap21_kidney:
+    imgs: '../../thesis/data/Hubmap_21_Kidney/train/'
+    masks: '../../thesis/data/Hubmap_21_Kidney/masks/'
