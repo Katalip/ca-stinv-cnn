@@ -7,12 +7,12 @@ import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
 
-from modules.dataset import *
-from modules.metrics import *
-from modules.utils import *
+from modules.dataset import hpa_hubmap_data_he
+from modules.metrics import mean_Dice
+from modules.utils import save_model, save_predictions_as_imgs
 from modules.augs import *
-from modules.models.resnet_smp_unet_he import *
-from modules.models.convnext_smp_unet_he import *
+from modules.models.resnet_smp_unet_he import ResUNet
+from modules.models.convnext_smp_unet_he import ConvNextUNet
 
 import wandb
 import time
@@ -33,12 +33,12 @@ cfg_name = args.config_name
 with open(os.path.join(dirname, f'cfg/{cfg_name}')) as f:
         cfg = yaml.safe_load(f)
 
-EXPERIMENT_NAME = cfg['Global'].get('experiment_name') 
-DEVICE = cfg['Global'].get('device')
-EPOCHS = cfg['Global'].get('epochs')
-VAL_EPOCH = cfg['Global'].get('val_epoch')
-CHECKPOINT_EPOCH = cfg['Global'].get('checkpoint_epoch')
-START_EPOCH = cfg['Global'].get('start_epoch')
+EXPERIMENT_NAME = cfg['Train'].get('experiment_name') 
+DEVICE = cfg['Train'].get('device')
+EPOCHS = cfg['Train'].get('epochs')
+VAL_EPOCH = cfg['Train'].get('val_epoch')
+CHECKPOINT_EPOCH = cfg['Train'].get('checkpoint_epoch')
+START_EPOCH = cfg['Train'].get('start_epoch')
 
 BATCH_SIZE = cfg['Loader'].get('batch_size')
 NUM_WORKERS = cfg['Loader'].get('num_workers')
@@ -67,7 +67,6 @@ def train(model, train_loader, val_loader, optimizer, scaler):
     
     iterations_per_epoch = len(train_loader)
 
-    # os.environ["WANDB_SILENT"] = "true"
     wandb.init(project=WANDB_PROJECT, resume=True)
 
     metric = mean_Dice()
@@ -91,7 +90,6 @@ def train(model, train_loader, val_loader, optimizer, scaler):
 
             optimizer.zero_grad()
             img, mask, stain_matrices, img_tf = data
-            # img, mask, stain_matrices = data
             img = img.to(DEVICE)
             mask = mask.to(DEVICE)
             stain_matrices = stain_matrices.to(DEVICE)
@@ -100,7 +98,6 @@ def train(model, train_loader, val_loader, optimizer, scaler):
             # Domain adaptation parameter λ
             p = float(iter + epoch * iterations_per_epoch) / (EPOCHS * iterations_per_epoch)
             alpha = 2. / (1. + np.exp(-10 * p)) - 1
-            #iter += 1
             
             with torch.cuda.amp.autocast():
                 outputs = model({'image':img, 'mask':mask, 'alpha':alpha, 'image_tf':img_tf})
@@ -143,7 +140,6 @@ def train(model, train_loader, val_loader, optimizer, scaler):
             wandb.log({'train_loss':train_loss, 
                     'train_dice': score, 'val_loss': val_loss, 'total_loss':total_loss,
                     'stain_loss': stain_loss, 
-                    # 'isw_loss': stain_loss,
                     'val_dice': val_score, 
                     'lr': optimizer.param_groups[0]['lr'],  
                     'wd': optimizer.param_groups[0]['weight_decay'],
@@ -211,7 +207,7 @@ if __name__ == '__main__':
     if ENCODER_NAME == 'resnet50':
         model = ResUNet(stinv_training=True, stinv_enc_dim=1, pool_out_size=6, filter_sensitive=True, n_domains=6, domain_pool='max').cuda()
     elif ENCODER_NAME == 'convnext_tiny':
-        model = ConvNextUNet(stinv_training=True, stinv_enc_dim=1, pool_out_size=6, filter_sensitive=True, n_domains=6, domain_pool='max', encoder_pretrain=PRETRAINED_WEIGHTS).cuda()
+        model = ConvNextUNet(stinv_training=True, stinv_enc_dim=0, pool_out_size=6, filter_sensitive=True, n_domains=6, domain_pool='max', encoder_pretrain=PRETRAINED_WEIGHTS).cuda()
         model.load_pretrain()
 
     if START_EPOCH > 0:
