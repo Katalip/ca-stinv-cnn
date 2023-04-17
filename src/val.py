@@ -84,11 +84,10 @@ def evaluate_model(model, val_loader, metric, save_preds=False):
         return valid_loss, mean_dice, precision, recall
 
 
-def eval_hpa_hubmap22(cfg, model, metric, batch_size=4):
+def eval_hpa_hubmap22(cfg, model, metric, log, batch_size=4):
 
     print(f'Dataset: HPA_HuBMAP_2022. Model: {state_dict}')
     
-    log = open(f"{SAVE_PATH}/val_res.txt", 'a')
     log.write("Dataset: HPA_HuBMAP_2022" + '\n')
     log.write(f"Fold: {cfg['fold']}" + '\n')
     log.write(f'Model: {state_dict}' + '\n')
@@ -100,15 +99,13 @@ def eval_hpa_hubmap22(cfg, model, metric, batch_size=4):
     log.write(res + '\n')
     print(res)
 
-    log.write('\n')
-    log.close()  
+    log.write('\n')  
     
 
-def eval_neptune(cfg, model, metric, batch_size=4, img_size = 480):
+def eval_neptune(cfg, model, metric, log, batch_size=4, img_size = 480):
 
     print(f'Dataset: NEPTUNE. Model: {state_dict}')
     
-    log = open(f"{SAVE_PATH}/val_res.txt", 'a')
     log.write(f"Dataset: NEPTUNE. Model: {state_dict}" + '\n')
 
     notes = f'Img size: {img_size}'
@@ -128,12 +125,10 @@ def eval_neptune(cfg, model, metric, batch_size=4, img_size = 480):
         print(res)
 
     log.write('\n')    
-    log.close()
 
-def eval_aidpath(cfg, model, metric, img_size = 256, batch_size=4):
+def eval_aidpath(cfg, model, metric, log, img_size = 256, batch_size=4):
 
     print(f'Dataset: AIDPATH. Model: {state_dict}')
-    log = open(f'{SAVE_PATH}/val_res.txt', 'a')
     log.write(f'Dataset: AIDPATH. Model: {state_dict}' + '\n')
 
     notes = f'Img size: {img_size}'
@@ -147,13 +142,11 @@ def eval_aidpath(cfg, model, metric, img_size = 256, batch_size=4):
     print(res)
 
     log.write('\n')
-    log.close()
 
 
-def eval_hubmap_kidney(cfg, model, metric, img_size=224, batch_size=4):
+def eval_hubmap_kidney(cfg, model, metric, log, img_size=224, batch_size=4):
 
     print(f'Dataset: HuBMAP21 Kidney. Model: {state_dict}')
-    log = open(f'{SAVE_PATH}/val_res.txt', 'a')
     log.write(f'Dataset: HuBMAP21 Kidney. Model: {state_dict}' + '\n')
 
     notes = f'Img size: {img_size}'
@@ -167,7 +160,6 @@ def eval_hubmap_kidney(cfg, model, metric, img_size=224, batch_size=4):
     print(res)
 
     log.write('\n')
-    log.close()
 
 
 
@@ -184,13 +176,16 @@ if __name__ == '__main__':
 
     metric = DicePrecisionRecall()
 
-    eval_hpa_hubmap22(cfg['Data'], model, metric)
-    eval_neptune(cfg['Eval']['neptune'], model, metric)
-    eval_aidpath(cfg['Eval']['aidpath'], model, metric)
-    eval_hubmap_kidney(cfg['Eval']['hubmap21_kidney'], model, metric)
+    log = open(f"{SAVE_PATH}/val_res.txt", 'a')
 
-    log = open(f'{SAVE_PATH}/val_res.txt', 'a')
+    # eval_hpa_hubmap22(cfg['Data'], model, metric, log)
+    # eval_neptune(cfg['Eval']['neptune'], model, metric, log)
+    eval_aidpath(cfg['Eval']['aidpath'], model, metric, log)
+    # eval_hubmap_kidney(cfg['Eval']['hubmap21_kidney'], model, metric, log)
+
     log.write('-'*20 + '\n')
+    log.close()
+
 
     
     
