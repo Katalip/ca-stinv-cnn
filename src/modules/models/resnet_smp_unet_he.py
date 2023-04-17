@@ -185,7 +185,7 @@ class ResUNet(nn.Module):
 
 def test_network(pretrained=False):
     batch_size = 2
-    image_size = 768 #800
+    image_size = 768
     
     # ---
     batch = {

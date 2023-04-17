@@ -42,7 +42,7 @@ class mean_Dice(nn.Module):
         return dice.mean()        
 
 
-class main_metrics(nn.Module):
+class DicePrecisionRecall(nn.Module):
     def __init__(self):
         super().__init__()
 

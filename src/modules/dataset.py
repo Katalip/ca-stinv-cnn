@@ -146,6 +146,7 @@ class hpa_hubmap_data_val(Dataset):
 class neptune_data(Dataset):
     def __init__(self, root, train=True, full_val=False, tfms=None, split_size=0.8, img_size=None):
         
+        root = os.path.join(dirname, '../', root)
         fnames = sorted(os.listdir(root))
         fnames = [i for i in fnames if 'mask' not in i]
         
@@ -187,8 +188,11 @@ class neptune_data(Dataset):
 
 # AIDPATH
 class aidpath_data(Dataset):
-    def __init__(self, path_imgs, path_masks, train=True, full_val = False, tfms=None, split_size=0.8, img_size=None):
+    def __init__(self, cfg, train=True, full_val = False, tfms=None, split_size=0.8, img_size=None):
         
+        path_imgs = os.path.join(dirname, '../', cfg['imgs'])
+        path_masks = os.path.join(dirname, '../', cfg['masks'])
+
         fnames = sorted(os.listdir(path_imgs))
 
         if not full_val:
@@ -226,8 +230,11 @@ class aidpath_data(Dataset):
 
 # Hubmpap 21 Kidney
 class hubmap21_kidney_data(Dataset):
-    def __init__(self, path_imgs, path_masks, train=True, full_val = False, tfms=None, split_size=0.8, img_size=None):
+    def __init__(self, cfg, train=True, full_val = False, tfms=None, split_size=0.8, img_size=None):
         
+        path_imgs = os.path.join(dirname, '../', cfg['imgs'])
+        path_masks = os.path.join(dirname, '../', cfg['masks'])
+
         fnames = sorted(os.listdir(path_imgs))
 
         if not full_val:

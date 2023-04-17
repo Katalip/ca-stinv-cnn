@@ -27,3 +27,5 @@ def save_predictions_as_imgs(preds, y, folder=None, idx = 0):
     save_image(preds, f"{folder}/viz_mask/pred_{idx}.png")
     save_image(y, f"{folder}/viz_mask/gt_{idx}.png")
 
+
+
