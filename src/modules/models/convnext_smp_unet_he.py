@@ -89,9 +89,7 @@ class ConvNextUNet(nn.Module):
         self.rgb = RGB()
         self.encoder_pretrain = encoder_pretrain
 
-        #https://github.com/rwightman/pytorch-image-models/blob/master/timm/models/resnet.py
         conv_dim = 32
-        # I think, can be replaced with 4x4 96 channels?
         self.conv = nn.Sequential(
             nn.Conv2d(3, 32, kernel_size=3, stride=2, padding=1, bias=False),
             nn.BatchNorm2d(32),
@@ -128,9 +126,22 @@ class ConvNextUNet(nn.Module):
 
         if self.stinv_training:
 
-            self.avgpool = nn.AvgPool2d(64, stride=64)
-            self.global_avgpool = nn.AdaptiveAvgPool2d((pool_out_size, pool_out_size))
-            self.maxpool = nn.AdaptiveMaxPool2d((pool_out_size, pool_out_size))
+            if self.domain_pool == 'max':
+                self.downsample = nn.AdaptiveMaxPool2d((pool_out_size, pool_out_size))
+
+            elif self.domain_pool == 'avg':
+                self.downsample = nn.AvgPool2d(64, stride=64)
+            
+            elif self.domain_pool == 'seq_conv':
+                self.downsample = nn.Sequential(
+                nn.Conv2d(encoder_dim[stinv_enc_dim], encoder_dim[stinv_enc_dim], kernel_size=4, stride=4, bias=False),
+                nn.BatchNorm2d(encoder_dim[stinv_enc_dim]),
+                nn.ReLU(inplace=True),
+                nn.Conv2d(encoder_dim[stinv_enc_dim], encoder_dim[stinv_enc_dim], kernel_size=4, stride=4, bias=False),
+                nn.BatchNorm2d(encoder_dim[stinv_enc_dim]),
+                nn.ReLU(inplace=True),
+                nn.Conv2d(encoder_dim[stinv_enc_dim], encoder_dim[stinv_enc_dim], kernel_size=4, stride=4, bias=False)
+            )
 
             self.cov_attention = CovarianceAttention(encoder_dim[stinv_enc_dim])
             self.stain_predictor = domain_predictor(encoder_dim[stinv_enc_dim]*pool_out_size*pool_out_size, n_domains)
@@ -197,11 +208,7 @@ class ConvNextUNet(nn.Module):
 
                 fmaps = fmaps * channel_attention
 
-            if self.domain_pool == 'max':
-                encoder_out = self.maxpool(fmaps) 
-
-            elif self.domain_pool == 'avg':
-                encoder_out = self.global_avgpool(fmaps)
+            encoder_out = self.downsample(fmaps)
 
             encoder_out = encoder_out.view(encoder_out.shape[0], -1)
             reverse_feature = GradientReversal.apply(encoder_out, batch['alpha'])
@@ -214,7 +221,7 @@ class ConvNextUNet(nn.Module):
 
 def test_network():
     batch_size = 2
-    image_size = 512 #800
+    image_size = 768
     
     # ---
     batch = {
@@ -244,6 +251,5 @@ def test_network():
             print('%32s :' % k, v.item())
 
 
-# main #################################################################
 if __name__ == '__main__':
     test_network()
