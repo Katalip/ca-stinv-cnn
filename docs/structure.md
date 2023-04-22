@@ -7,13 +7,19 @@ Descriptions of each file can be found below
 |   environment.yml
 |   README.md
 |   requirements.txt
+|   LICENSE
+|   pyproject.toml
+|   .flake8
+|   .pre-commit-config.yaml
 |
 \---src
     |   train.py -> Training script
     |   val.py -> Validation and testing script
+    |   run_components.py -> Functions for training/evaluating/testing
     |
     +---cfg
-    |       train_cfg.yml -> Main config file for training
+    |       resnet.yml -> Config file for ResNet
+    |       convnext.yml -> Config file for ConvNeXt
     |
     +---modules
     |   |   augs.py -> Augmentations used in the study
@@ -27,6 +33,9 @@ Descriptions of each file can be found below
     |   |   |   convnext.py -> Implementation of ConvNeXt from their official repository
     |   |   |   convnext_smp_unet_he.py -> Unet with ConvNeXt as backbone, stain-invariant training branch, and channel attention
     |   |   |   resnet_smp_unet_he.py -> Unet with ResNet as backbone, stain-invariant training branch, and channel attention
+    |   |   |   stinv_training.py -> Domain-predictor and gradient reversal
+    |   |   |   isw.py -> Reimplementation of instance-selective whitening
+    |   |   |   cov_attention.py -> Proposed channel attention mechanism
     |   |
     |   +---stainspec -> This folder contains official implementation of one of the compared methods
 ```
