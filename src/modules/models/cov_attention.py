@@ -1,14 +1,15 @@
-
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+
 class CovarianceAttention(nn.Module):
-    """Used for computing channel attention based on feature covariances 
+    """Used for computing channel attention based on feature covariances
 
     Attributes:
         in_channels (int): The number of input channels (C) from B x C x H x W
     """
+
     def __init__(self, in_channels):
         """
         Args:
@@ -24,7 +25,7 @@ class CovarianceAttention(nn.Module):
         1) Compute individiaul covariance matrices (COV, COV') of feature maps of the input image (F) and its augmented version (F')
         2) Compute variance matrix (V) that represents difference between two covariance matrices (COV, COV')
         3) Apply linear transformation (FC) to get channel weights
-        4) Map these values to the range (0, 1) with sigmoid  
+        4) Map these values to the range (0, 1) with sigmoid
 
         Args:
             x (torch.tensor): Feature maps of the input image after n-th encoder stage, n is optional
@@ -36,10 +37,10 @@ class CovarianceAttention(nn.Module):
 
         cov_base, _ = get_covariance_matrix(x)
         cov_tf, _ = get_covariance_matrix(x_tf)
-    
+
         var_matrix = get_var_matrix(cov_base, cov_tf)
 
-        channel_attention = self.fc(var_matrix).unsqueeze(3) 
+        channel_attention = self.fc(var_matrix).unsqueeze(3)
         channel_attention = self.sigmoid(channel_attention)
 
         return channel_attention
@@ -64,7 +65,9 @@ def get_covariance_matrix(f_map, eye=None):
     if eye is None:
         eye = torch.eye(C).cuda()
     f_map = f_map.view(B, C, -1)  # B X C X H X W > B X C X (H X W)
-    f_cor = torch.bmm(f_map, f_map.transpose(1, 2)).div(HW-1) + (eps * eye)  # C X C / HW
+    f_cor = torch.bmm(f_map, f_map.transpose(1, 2)).div(HW - 1) + (
+        eps * eye
+    )  # C X C / HW
 
     return f_cor, B
 
@@ -79,7 +82,7 @@ def get_var_matrix(cov, cov_tf):
     Returns:
         torch.tensor: Variance matrix
     """
-    mu = 0.5*(cov + cov_tf)
-    sigma_sq = 0.5*((cov - mu)**2 + (cov_tf - mu)**2)
+    mu = 0.5 * (cov + cov_tf)
+    sigma_sq = 0.5 * ((cov - mu) ** 2 + (cov_tf - mu) ** 2)
 
     return sigma_sq

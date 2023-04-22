@@ -1,9 +1,9 @@
 Train:
   experiment_name: 'test'
   device: 'cuda'
-  epochs: 40
+  epochs: 80
   val_epoch: 3
-  checkpoint_epoch: 50
+  checkpoint_epoch: 20
   start_epoch: 0
 Data:
   train_imgs: '../../thesis/data/HUBMAP_HPA_22/hubmap_768_whole/train_images/'
@@ -11,17 +11,17 @@ Data:
   labels: '../../thesis/data/HUBMAP_HPA_22/hubmap_orig/train.csv'
   nfolds: 4
   fold: 2
-  seed: 309
+  seed: 309  
 Loader:
   batch_size: 4
   num_workers: 4
 Architecture:
-  encoder: 'convnext_tiny'
-  weights: '../thesis/pretrained_models/convnext_tiny_1k_224_ema.pth'
+  encoder: 'resnet50'  
+  weights: '' # Initialized from 'segmentation models pytorch' pretrained weights
 Logging:
   wandb_project: 'segmap'
 Eval:
-  checkpoint_epoch: 39
+  checkpoint_epoch: 79
   neptune:
     root: '../../thesis/data/NEPTUNE/'
     he: 'HE_glom_capsule'
@@ -34,3 +34,5 @@ Eval:
   hubmap21_kidney:
     imgs: '../../thesis/data/Hubmap_21_Kidney/train/'
     masks: '../../thesis/data/Hubmap_21_Kidney/masks/'
+
+  

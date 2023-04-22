@@ -28,11 +28,13 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+import kmeans1d
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import kmeans1d
+
 from .cov_attention import get_covariance_matrix, get_var_matrix
+
 
 # reimplemented from https://github.com/shachoi/RobustNet/blob/main/network/cov_settings.py
 class ISW(nn.Module):
@@ -40,14 +42,16 @@ class ISW(nn.Module):
         super(ISW, self).__init__()
         self.clusters = clusters
 
-
     def get_mask_matrix(self, var_matrix):
-
         dim = var_matrix.shape[-1]
         var_flatten = torch.flatten(var_matrix)
-        
-        clusters, centroids = kmeans1d.cluster(var_flatten, self.clusters) # 50 clusters
-        num_sensitive = var_flatten.size()[0] - clusters.count(0)  # 1: Insensitive Cov, 2~50: Sensitive Cov
+
+        clusters, centroids = kmeans1d.cluster(
+            var_flatten, self.clusters
+        )  # 50 clusters
+        num_sensitive = var_flatten.size()[0] - clusters.count(
+            0
+        )  # 1: Insensitive Cov, 2~50: Sensitive Cov
         _, indices = torch.topk(var_flatten, k=int(num_sensitive))
 
         mask_matrix = torch.flatten(torch.zeros(dim, dim).cuda())
@@ -57,26 +61,28 @@ class ISW(nn.Module):
 
         return mask_matrix
 
-
     def forward(self, x, x_tf):
-
         x = F.instance_norm(x)
         x_tf = F.instance_norm(x_tf)
 
         cov_base, _ = get_covariance_matrix(x)
         cov_tf, _ = get_covariance_matrix(x_tf)
-    
+
         var_matrix = get_var_matrix(cov_base, cov_tf)
         var_matrix = torch.mean(var_matrix, dim=0, keepdim=True)
 
         mask = self.get_mask_matrix(torch.triu(var_matrix, diagonal=1))
-        
+
         cov_base = cov_base * mask
         num_remove_cov = mask.sum() + 0.0001
         B = cov_base.shape[0]
 
-        off_diag_sum = torch.sum(torch.abs(cov_base), dim=(1,2), keepdim=True) # - margin # B X 1 X 1
-        loss = torch.clamp(torch.div(off_diag_sum, num_remove_cov), min=0) # B X 1 X 1
+        off_diag_sum = torch.sum(
+            torch.abs(cov_base), dim=(1, 2), keepdim=True
+        )  # - margin # B X 1 X 1
+        loss = torch.clamp(
+            torch.div(off_diag_sum, num_remove_cov), min=0
+        )  # B X 1 X 1
         loss = torch.sum(loss) / B
 
         return loss

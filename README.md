@@ -1,7 +1,7 @@
 ## 🔬 Improving Stain Invariance of CNNs (Implementation)
 
 > Full Title: Improving Stain Invariance of CNNs for Segmentation by Fusing Channel Attention and Domain-Adversarial Training <br>
-> Paper: To do (Need to add link after publication) <br> 
+> Paper: To do (Need to add link after publication) <br>
 > Slide: To do <br>
 
 Thank you for expressing interest in our work.
@@ -21,7 +21,7 @@ Thank you for expressing interest in our work.
 - [ ] Add training logs
 - [x] Add dataset links
 - [x] Add config explanation
-- [x] Check environment setup on both Windows and Linux 
+- [x] Check environment setup on both Windows and Linux
 - [ ] Add instruction on how to adapt the method for your own model
 - [ ] Check macenko_torch.py with newer pytorch versions
 - [ ] Check whether wandb login info gets stored or not
@@ -29,4 +29,3 @@ Thank you for expressing interest in our work.
 - [ ] List potential small erros due to hyperparameter changes
 - [ ] Add test time stain normalization in val.py
 - [x] Add ISW license
-

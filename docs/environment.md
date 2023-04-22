@@ -1,5 +1,5 @@
 ## Setup
-  
+
 1. Create an environment:
 ```
 conda create -n <env_name> python=3.7
