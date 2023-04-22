@@ -1,4 +1,4 @@
-## 🔬 Improving Stain Invariance of CNNs (Implementation)
+## 🔬 Improving Stain Invariance of CNNs
 
 > Full Title: Improving Stain Invariance of CNNs for Segmentation by Fusing Channel Attention and Domain-Adversarial Training <br>
 > Paper: To add link <br>
