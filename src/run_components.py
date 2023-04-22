@@ -1,13 +1,18 @@
+import os
 import wandb
 import time
 import gc
 
 import torch
 import torch.nn as nn
+from torch.utils.data import DataLoader
 import numpy as np
 
 from modules.metrics import mean_Dice
 from modules.utils import save_model, save_predictions_as_imgs
+from modules.metrics import DicePrecisionRecall
+from modules.dataset import hpa_hubmap_data_he, neptune_data, aidpath_data, hubmap21_kidney_data
+from modules.utils import save_predictions_as_imgs
 
 mse_loss = nn.MSELoss()
 def rmse_loss(out, target):
@@ -131,3 +136,129 @@ def evaluate_model(model, val_loader, metric, cfg, save_preds=False):
         val_score /= len(val_loader)
 
         return valid_loss, val_score
+
+
+def test_external(model, val_loader, metric, device='GPU', save_path=None, save_preds=False):
+    model.eval()
+    model.output_type = ['loss']
+    total_dice, total_precision, total_recall = 0, 0, 0
+    
+    with torch.no_grad():
+        
+        valid_loss = 0
+
+        for i, data in enumerate(val_loader):
+            
+            img, mask = data
+            img = img.to(device)
+            mask = mask.to(device)
+            
+            outputs = model({'image':img, 'mask':mask})
+            
+            if save_preds:
+                save_predictions_as_imgs(outputs['raw'], mask, folder=f"{save_path}", idx=i)
+            
+            val_dice, val_precision, val_recall = metric(outputs['raw'], mask)
+            valid_loss += outputs['bce_loss'].mean()
+
+            total_dice += val_dice
+            total_precision += val_precision
+            total_recall += val_recall
+
+            
+        valid_loss /= len(val_loader)
+        mean_dice = total_dice / len(val_loader)
+        precision = total_precision / len(val_loader)
+        recall = total_recall / len(val_loader)
+
+        return valid_loss, mean_dice, precision, recall
+
+
+
+def eval_hpa_hubmap22(cfg, model, state_dict, log, device, save_path, batch_size=4):
+
+    metric = DicePrecisionRecall()
+
+    print(f'Dataset: HPA_HuBMAP_2022. Model: {state_dict}')
+    
+    log.write("Dataset: HPA_HuBMAP_2022" + '\n')
+    log.write(f"Fold: {cfg['fold']}" + '\n')
+    log.write(f'Model: {state_dict}' + '\n')
+
+    val_data = hpa_hubmap_data_he(cfg=cfg, train=False)
+    val_loader = DataLoader(val_data, shuffle = True, batch_size = batch_size)   
+    loss, dice, precision, recall = test_external(model, val_loader, metric, device, save_path)
+    res = f'Organ: all | Loss: {loss.item():.3f} | Dice: {dice:.3f} | Precision: {precision:.3f} | Recall: {recall:.3f}'
+    log.write(res + '\n')
+    print(res)
+
+    log.write('\n')  
+    
+
+def eval_neptune(cfg, model, state_dict, log, device, save_path, batch_size=4, img_size = 480):
+
+    metric = DicePrecisionRecall()
+
+    print(f'Dataset: NEPTUNE. Model: {state_dict}')
+    
+    log.write(f"Dataset: NEPTUNE. Model: {state_dict}" + '\n')
+
+    notes = f'Img size: {img_size}'
+    log.write(notes + '\n')
+    
+    for path in [cfg['he'], cfg['pas'], cfg['tri'], cfg['sil']]:
+        neptune_path = os.path.join(cfg['root'], path)
+
+        log.write(path + '\n')
+
+        val_data = neptune_data(neptune_path, full_val=True, img_size=img_size)
+        val_loader = DataLoader(val_data, shuffle = True, batch_size = batch_size)   
+        loss, dice, precision, recall = test_external(model, val_loader, metric, device, save_path)
+
+        res = f'Loss: {loss.item()} | Dice: {dice:.3f} | Precision: {precision:.3f} | Recall: {recall:.3f}'
+        log.write(res + '\n')
+        print(res)
+
+    log.write('\n')    
+
+
+def eval_aidpath(cfg, model, state_dict, log, device, save_path, img_size = 256, batch_size=4):
+
+    metric = DicePrecisionRecall()
+
+    print(f'Dataset: AIDPATH. Model: {state_dict}')
+    log.write(f'Dataset: AIDPATH. Model: {state_dict}' + '\n')
+
+    notes = f'Img size: {img_size}'
+    log.write(notes + '\n')
+
+    val_data = aidpath_data(cfg, full_val=True, img_size=img_size)
+    val_loader = DataLoader(val_data, shuffle = True, batch_size = batch_size)   
+    loss, dice, precision, recall = test_external(model, val_loader, metric, device, save_path)
+    res = f'Loss: {loss.item()} | Dice: {dice:.3f} | Precision: {precision:.3f} | Recall: {recall:.3f})'
+    log.write(res + '\n')
+    print(res)
+
+    log.write('\n')
+
+
+def eval_hubmap_kidney(cfg, model, state_dict, log, device, save_path, img_size=224, batch_size=4):
+
+    metric = DicePrecisionRecall()
+
+    print(f'Dataset: HuBMAP21 Kidney. Model: {state_dict}')
+    log.write(f'Dataset: HuBMAP21 Kidney. Model: {state_dict}' + '\n')
+
+    notes = f'Img size: {img_size}'
+    log.write(notes + '\n')
+
+    val_data = hubmap21_kidney_data(cfg, full_val=True, img_size=img_size)
+    val_loader = DataLoader(val_data, shuffle = True, batch_size = batch_size)   
+    loss, dice, precision, recall = test_external(model, val_loader, metric, device, save_path)
+    res = f'Loss: {loss.item()} | Dice: {dice:.3f} | Precision: {precision:.3f} | Recall: {recall:.3f})'
+    log.write(res + '\n')
+    print(res)
+
+    log.write('\n')
+
+
