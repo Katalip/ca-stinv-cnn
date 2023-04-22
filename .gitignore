@@ -14,3 +14,5 @@ src/train.ipynb
 src/val.ipynb
 src/preprocessing
 *.pyc
+src/cfg/convnext_copy.yml
+src/cfg/resnet_copy.yml

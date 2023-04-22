@@ -25,15 +25,15 @@ Logging:
 Eval:
   checkpoint_epoch: Load model state from this epoch
   neptune:
-    root: Directory that contains neptune img subfolders (each folder contains imgs prepared with different stain)
+    root: Directory that contains NEPTUNE img subfolders (each folder contains imgs prepared with different stain)
     he: Folder name for imgs stained with HE
     pas: Folder name for imgs stained with PAS
     sil: Folder name for imgs stained with SIL
     tri: Folder name for imgs stained with TRI
   aidpath:
     imgs: Path to the training imgs of AIDPATH
-    masks: Path to the training imgs of AIDPATH
+    masks: Path to the training masks of AIDPATH
   hubmap21_kidney:
     imgs: Path to the training imgs of HUBMAP 21 Kidney
-    masks: Path to the training imgs of HUBMAP 21 Kidney
+    masks: Path to the training masks of HUBMAP 21 Kidney
 ```
