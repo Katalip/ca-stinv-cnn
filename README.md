@@ -10,6 +10,7 @@ Thank you for expressing interest in our work
 ## 📖 Navigation
 <details open>
   <summary>Environment Setup</summary>
+  
   ## Setup
   1. Create an environment:
   ```
@@ -23,6 +24,7 @@ Thank you for expressing interest in our work
   ```
   pip install -r requirements.txt
   ```
+
 </details>
 <details>
   <summary>Repository Structure</summary>
