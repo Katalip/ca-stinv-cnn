@@ -7,7 +7,9 @@ Kudaibergen Abutalip, Numan Saeed, Mustaqeem Khan, Abdulmotaleb El Saddik <br>
 Thank you for expressing interest in our work
 
 ## 📖 Navigation
-- [Environment Setup](./docs/environment.md)
+<details>
+  <summary>- [Environment Setup](./docs/environment.md)</summary>
+</details>
 - [Repository Structure](./docs/structure.md)
 - [Config File Explanation](./docs/config_explanation.md)
 - [Datasets](./docs/datasets.md)
