@@ -8,7 +8,7 @@ Thank you for expressing interest in our work
 
 ## 📖 Navigation
 <details>
-  <summary>- [Environment Setup](./docs/environment.md)</summary>
+  <summary>Environment Setup</summary>
 </details>
 - [Repository Structure](./docs/structure.md)
 - [Config File Explanation](./docs/config_explanation.md)
