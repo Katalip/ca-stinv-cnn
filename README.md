@@ -26,3 +26,14 @@ Thank you for expressing interest in our work
 <details>
   <summary>Evaluate</summary>
 </details>
+
+## Citation
+```
+@article{Abutalip2023ImprovingSI,
+  title={Improving Stain Invariance of CNNs for Segmentation by Fusing Channel Attention and Domain-Adversarial Training},
+  author={Kudaibergen Abutalip and Numan Saeed and Mustaqeem Khan and Abdulmotaleb El Saddik},
+  journal={ArXiv},
+  year={2023},
+  volume={abs/2304.11445},
+  url={https://api.semanticscholar.org/CorpusID:258298481}
+}```
