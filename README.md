@@ -7,7 +7,7 @@ Kudaibergen Abutalip, Numan Saeed, Mustaqeem Khan, Abdulmotaleb El Saddik <br>
 Thank you for expressing interest in our work
 
 ## 📖 Navigation
-<details>
+<details open>
   <summary>Environment Setup</summary>
 </details>
 - [Repository Structure](./docs/structure.md)
