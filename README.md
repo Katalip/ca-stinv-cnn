@@ -2,7 +2,7 @@
 
 > Full Title: Improving Stain Invariance of CNNs for Segmentation by Fusing Channel Attention and Domain-Adversarial Training <br>
 Kudaibergen Abutalip, Numan Saeed, Mustaqeem Khan, Abdulmotaleb El Saddik <br>
-Medical Imaging with Deep Learning 2023, Nashville, USA
+Accepted at Medical Imaging with Deep Learning 2023, Nashville, USA <br>
 > [Paper Link](https://openreview.net/pdf?id=uZ1SVZgEJ02) <br>
 
 Thank you for expressing interest in our work
