@@ -11,7 +11,6 @@ Thank you for expressing interest in our work
 <details open>
   <summary>Environment Setup</summary>
   
-  ## Setup
   1. Create an environment:
   ```
   conda create -n <env_name> python=3.9
@@ -29,7 +28,6 @@ Thank you for expressing interest in our work
 <details>
   <summary>Repository Structure</summary>
 
-  ## Structure of the repository
 Descriptions of each file can be found below
 
 ```
@@ -73,15 +71,103 @@ Descriptions of each file can be found below
 </details>
 <details>
   <summary>Config File Explanation</summary>
+
+  ## Config file explanation
+```
+Train:
+  experiment_name: Name for the experiment (training run) 
+  device: GPU or CPU, default: 'cuda'
+  epochs: N of epochs for training
+  val_epoch: Frequency of validation during training
+  checkpoint_epoch: When to save model state
+  start_epoch: Define if resuming from previous run
+Data:
+  train_imgs: Path to the training imgs of HUBMAP_HPA_22
+  masks: Path to the training masks of HUBMAP_HPA_22
+  labels: Path to the csv file with metadata of HUBMAP_HPA_22
+  nfolds: Number of folds
+  fold: Which fold to use
+  seed: Random seed. Default: 309  
+Loader:
+  batch_size: Batch size for dataloaders
+  num_workers: N of workers for dataloaders
+Architecture:
+  encoder: Backbone name. Either 'resnet50' or 'convnext_tiny'  
+  weights: Initialized from 'segmentation models pytorch' pretrained weights for resnet, and loaded from .ckpt file for convnext
+Logging:
+  wandb_project: Wandb project name
+Eval:
+  checkpoint_epoch: Load model state from this epoch
+  neptune:
+    root: Directory that contains NEPTUNE img subfolders (each folder contains imgs prepared with different stain)
+    he: Folder name for imgs stained with HE
+    pas: Folder name for imgs stained with PAS
+    sil: Folder name for imgs stained with SIL
+    tri: Folder name for imgs stained with TRI
+  aidpath:
+    imgs: Path to the training imgs of AIDPATH
+    masks: Path to the training masks of AIDPATH
+  hubmap21_kidney:
+    imgs: Path to the training imgs of HUBMAP 21 Kidney
+    masks: Path to the training masks of HUBMAP 21 Kidney
+```
+  
 </details>
 <details>
   <summary>Datasets</summary>
+
+  We provide the links below and give a short description of their origin.
+
+**HPA + HuBMAP 2022**. Human Protein Atlas (HPA) is a Swedish-based program (make a link), and The Human BioMolecular Atlas Program (HuBMAP) details its data contributors (US) [here.](https://hubmapconsortium.org/hubmap-data/#:~:text=HuBMAP%20data%20was%20generated%20using,assay%20types%20used%20in%20each) [Description of the dataset.](https://www.biorxiv.org/content/10.1101/2023.01.05.522764v1) [Download link](https://zenodo.org/record/7545745#.Y-M5SXZBwal) It is important to mention that the test set was not available during this study and this download page has been created recently <br>
+
+**The Nephrotic Syndrome Study Network (NEPTUNE)** is a North American multi-center consortium. We use a subset of this dataset that contains only glomeruli with annotations of Bowman’s space to match the training data. Samples were collected across 29 enrollment centers (US and Canada).
+[Description.](https://www.sciencedirect.com/science/article/pii/S0085253820309625)
+The [download link](https://github.com/ccipd/DL-kidneyhistologicprimitives) is available at the bottom as online supplemental material (we use files named with 'glom_capsule').
+
+**Academia and Industry Collaboration for Digital Pathology (AIDPATH)** is a Europen project. The data is collected in Spain and hosted by Mendeley. [Description.](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC7058889/#fn2) [Download](https://data.mendeley.com/datasets/k7nvtgn2x6/3)
+
+WSIs in **HuBMAP21 Kidney** should come from the data contributors that can be viewed by the link provided above. [Description.](https://www.biorxiv.org/content/10.1101/2021.11.09.467810v1) [Download](https://github.com/cns-iu/ccf-research-kaggle-2021) (Data section)
+
+We do not perform any specific preprocessing. Training images are resized to 768x768, while test samples are resized to sizes that match stats (pixel size, magnification) of the train data.
+NEPTUNE images to 480x480
+AIDPATH samples to 256x256
+HuBMAP21 Kidney WSIs to 224x224
+  
 </details>
 <details>
   <summary>Train</summary>
+
+  To train the model:
+```
+cd src
+python train.py <encoder>.yml
+```
+
+E.g.
+```
+cd src
+python train.py resnet.yml
+```
+
+Checkpoints and logs are stored in the Experiments folder in the parent directory and also logged with wandb
+  
 </details>
 <details>
   <summary>Evaluate</summary>
+
+  To train the model:
+```
+cd src
+python val.py <encoder>.yml
+```
+
+E.g.
+```
+cd src
+python val.py resnet.yml
+```
+
+Logs are stored in the Experiments folder in the parent directory
 </details>
 
 ## Citation
