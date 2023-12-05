@@ -10,9 +10,18 @@ Thank you for expressing interest in our work
 <details open>
   <summary>Environment Setup</summary>
 </details>
-- [Repository Structure](./docs/structure.md)
-- [Config File Explanation](./docs/config_explanation.md)
-- [Datasets](./docs/datasets.md)
-- [Train](./docs/train.md)
-- [Evaluate](./docs/eval.md)
-- [How to use the method with your/custom model](./docs/integration.md)
+<details>
+  <summary>Repository Structure</summary>
+</details>
+<details>
+  <summary>Config File Explanation</summary>
+</details>
+<details>
+  <summary>Datasets</summary>
+</details>
+<details>
+  <summary>Train</summary>
+</details>
+<details>
+  <summary>Evaluate</summary>
+</details>
