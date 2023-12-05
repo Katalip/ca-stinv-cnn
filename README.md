@@ -73,6 +73,7 @@ Descriptions of each file can be found below
   <summary>Config File Explanation</summary>
 
 <br>
+
 ```
 Train:
   experiment_name: Name for the experiment (training run) 
