@@ -138,6 +138,7 @@ HuBMAP21 Kidney WSIs to 224x224
 <details>
   <summary>Train</summary>
   <br>
+  
   To train the model:
 ```
 cd src
@@ -156,7 +157,8 @@ Checkpoints and logs are stored in the Experiments folder in the parent director
 <details>
   <summary>Evaluate</summary>
   <br>
-  To train the model:
+  
+  To evaluate the model:
 ```
 cd src
 python val.py <encoder>.yml
