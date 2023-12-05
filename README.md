@@ -27,7 +27,7 @@ Thank you for expressing interest in our work
 </details>
 <details>
   <summary>Repository Structure</summary>
-
+<br>
 Descriptions of each file can be found below
 
 ```
@@ -72,7 +72,7 @@ Descriptions of each file can be found below
 <details>
   <summary>Config File Explanation</summary>
 
-  ## Config file explanation
+<br>
 ```
 Train:
   experiment_name: Name for the experiment (training run) 
@@ -115,7 +115,7 @@ Eval:
 </details>
 <details>
   <summary>Datasets</summary>
-
+  <br>
   We provide the links below and give a short description of their origin.
 
 **HPA + HuBMAP 2022**. Human Protein Atlas (HPA) is a Swedish-based program (make a link), and The Human BioMolecular Atlas Program (HuBMAP) details its data contributors (US) [here.](https://hubmapconsortium.org/hubmap-data/#:~:text=HuBMAP%20data%20was%20generated%20using,assay%20types%20used%20in%20each) [Description of the dataset.](https://www.biorxiv.org/content/10.1101/2023.01.05.522764v1) [Download link](https://zenodo.org/record/7545745#.Y-M5SXZBwal) It is important to mention that the test set was not available during this study and this download page has been created recently <br>
@@ -136,7 +136,7 @@ HuBMAP21 Kidney WSIs to 224x224
 </details>
 <details>
   <summary>Train</summary>
-
+  <br>
   To train the model:
 ```
 cd src
@@ -154,7 +154,7 @@ Checkpoints and logs are stored in the Experiments folder in the parent director
 </details>
 <details>
   <summary>Evaluate</summary>
-
+  <br>
   To train the model:
 ```
 cd src
